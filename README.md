@@ -26,6 +26,10 @@ All paths are relative, so the app works under a GitHub Pages repository path. N
 
 From the project directory, run `python3 -m http.server 8000`, then open http://localhost:8000. Use a web server rather than opening the HTML as a file, because JavaScript modules require HTTP(S).
 
+## Transaction entry
+
+The white-and-blue transaction sheet fits a phone screen. Choose a category, then use the calculator keypad in the same area. Tap the category name to choose another category. Labels scroll horizontally. The three-dot menu contains exclusion and deletion options. Arithmetic is evaluated when saving, or by tapping the equals button next to the amount.
+
 ## Phone installation
 
 On iPhone: open in Safari, tap Share, then **Add to Home Screen**. On Android: use the browser's **Install app** or **Add to Home screen** option. Visit online once before using offline. In some browsers, installing creates a separate storage context; restore a JSON backup if your records do not carry over.
