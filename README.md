@@ -38,7 +38,7 @@ On iPhone: open in Safari, tap Share, then **Add to Home Screen**. On Android: u
 
 Records are stored in `localStorage` under `everyday-sgd-v1`. No financial records are transmitted to GitHub or another server. Data is specific to your browser, device and site origin; it does not sync automatically. Clearing site data can erase it. Download a JSON backup regularly and before moving to another device or site address. Browser storage is not encrypted by this app.
 
-CSV exports are for spreadsheets; JSON backups include transactions, categories, labels, budgets, recurring rules and settings. Restoring a backup replaces current records. The app validates imports and preserves unreadable saved data rather than overwriting it.
+CSV exports use `Date,Wallet,Type,Category name,Amount,Currency,Note,Labels`, matching the supplied source-app export without Author. Wallet is blank, expenses are negative, income is positive, and amounts use eight decimal places. Original imported timestamps are preserved; entries with only a date export Singapore midnight as a UTC timestamp. CSV exports are for spreadsheets; JSON backups include transactions, categories, labels, budgets, recurring rules and settings. Restoring a backup replaces current records. The app validates imports and preserves unreadable saved data rather than overwriting it.
 
 Amounts use integer cents. Budgets use calendar months; their first period begins on the selected start date. Excluded transactions stay in history/exports but do not contribute to cash flow, charts or budgets. Future transactions are shown as scheduled until their dates arrive. The home history defaults to the selected month; setting a custom date range overrides that month for history and its CSV export.
 
