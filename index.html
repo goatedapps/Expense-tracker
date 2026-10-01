@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b8064">
+  <meta name="description" content="Your personal SGD expense tracker. Transactions, budgets and insights, stored on your device.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Everyday · Expense tracker</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar"><a href="#home" class="brand"><span class="brand-mark">e<span>·</span></span><span>everyday<span class="brand-caption">EXPENSE TRACKER</span></span></a><span class="currency-chip">SGD</span></header>
+    <main id="app" tabindex="-1"></main>
+    <button class="add-button" id="add-transaction" aria-label="Add transaction">+</button>
+    <nav class="bottom-nav" aria-label="Main navigation"></nav>
+  </div>
+  <dialog id="editor" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <input id="restore-file" type="file" accept="application/json,.json" hidden>
+  <noscript>This app needs JavaScript to track your expenses.</noscript>
+</body>
+</html>
