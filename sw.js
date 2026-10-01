@@ -1,4 +1,4 @@
-const CACHE='everyday-v4';
+const CACHE='everyday-v5';
 const ROOT=new URL('./',self.location).href;
 const ASSETS=['./','./index.html','./styles.css','./js/app.js','./js/model.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(path=>new URL(path,ROOT).href)))));

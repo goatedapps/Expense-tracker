@@ -6,6 +6,7 @@ export const monthLabel = month => new Date(`${month}-01T12:00:00`).toLocaleDate
 export const dateLabel = date => new Date(`${date}T12:00:00`).toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
 export const singaporeDate = timestamp => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Singapore',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(timestamp));
 export const FREQUENCIES = {none:'Don’t repeat',daily:'Every day',workday:'Every weekday',weekly:'Every week',fortnightly:'Every 2 weeks',fourweekly:'Every 4 weeks',monthly:'Every month',bimonthly:'Every 2 months',quarterly:'Every 3 months',halfyearly:'Every 6 months',yearly:'Every year'};
+export const BUDGET_FREQUENCIES={daily:'Daily',weekly:'Weekly',fortnightly:'Bi-weekly (every 2 weeks)',monthly:'Monthly',yearly:'Yearly'};
 const defaults = [
   ['food','Food & Drink','🍴','#e9ad25','expense'],['groceries','Groceries','🥐','#c88248','expense'],['transport','Transport','🚆','#d2ab22','expense'],['shopping','Shopping','🛍️','#c879cd','expense'],['bills','Bills & Fees','🧾','#4ea994','expense'],['home','Home','🏠','#ab9461','expense'],['entertainment','Entertainment','🎭','#ea9749','expense'],['health','Healthcare','🩺','#d67e95','expense'],['education','Education','🎓','#5c8fbd','expense'],['travel','Travel','✈️','#d872a9','expense'],['personal','Personal','👤','#6ab1c6','expense'],['other','Other','◈','#849291','expense'],['salary','Salary','💼','#0b8064','income'],['dividend','Dividends','🌱','#54a867','income'],['other-income','Other income','＋','#5d9d8e','income']
 ];
@@ -33,7 +34,21 @@ export function processRules(state,through=today()){
   }}return count;
 }
 export function summary(transactions){return transactions.filter(t=>!t.excluded).reduce((s,t)=>{s[t.type]+=t.amount;return s;},{income:0,expense:0});}
-export function budgetUsage(state,budget,month){return state.transactions.filter(t=>t.date.startsWith(month)&&t.date>=budget.startDate&&t.date<=today()&&t.type==='expense'&&!t.excluded&&(!budget.categoryIds.length||budget.categoryIds.includes(t.categoryId))).reduce((s,t)=>s+t.amount,0);}
+const addDays=(date,days)=>{const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);};
+export function budgetPeriod(budget,date){
+  if(date<budget.startDate)return null;
+  const frequency=budget.frequency||'monthly';let start,end;
+  if(frequency==='monthly'){start=date.slice(0,7)+'-01';end=addDays(shiftMonth(date.slice(0,7),1)+'-01',-1);}
+  else if(frequency==='yearly'){start=date.slice(0,4)+'-01-01';end=date.slice(0,4)+'-12-31';}
+  else{const days={daily:1,weekly:7,fortnightly:14}[frequency];const elapsed=Math.round((new Date(date+'T12:00:00Z')-new Date(budget.startDate+'T12:00:00Z'))/86400000);start=addDays(budget.startDate,Math.floor(elapsed/days)*days);end=addDays(start,days-1);}
+  if(start<budget.startDate)start=budget.startDate;return {start,end};
+}
+export function budgetPeriodsForMonth(budget,month){
+  const first=month+'-01',last=addDays(shiftMonth(month,1)+'-01',-1),periods=[];let date=first<budget.startDate?budget.startDate:first;
+  while(date<=last&&periods.length<31){const period=budgetPeriod(budget,date);if(!period)break;periods.push(period);date=addDays(period.end,1);}return periods;
+}
+export function budgetTransactions(state,budget,period){return period?state.transactions.filter(t=>t.date>=period.start&&t.date<=period.end&&t.date>=budget.startDate&&t.date<=today()&&t.type==='expense'&&!t.excluded&&(!budget.categoryIds.length||budget.categoryIds.includes(t.categoryId))):[];}
+export function budgetUsage(state,budget,selected){const period=typeof selected==='string'?budgetPeriod(budget,selected===today().slice(0,7)?today():addDays(shiftMonth(selected,1)+'-01',-1)):selected;return budgetTransactions(state,budget,period).reduce((sum,t)=>sum+t.amount,0);}
 export function validateState(data){
   const fail=()=>{throw Error('This file is not a valid Everyday backup.');};
   if(!data||data.version!==1)fail();
@@ -46,10 +61,10 @@ export function validateState(data){
   const transaction=(t,withDate)=>{if(!t||!['income','expense'].includes(t.type)||!Number.isSafeInteger(t.amount)||t.amount<=0||t.amount>100000000000||!cats.has(t.categoryId)||data.categories.find(c=>c.id===t.categoryId).type!==t.type||!Array.isArray(t.labelIds)||t.labelIds.some(id=>!labs.has(id))||!str(t.description,1000)||typeof t.excluded!=='boolean'||(withDate&&!validDate(t.date)))fail();};
   for(const t of data.transactions){transaction(t,true);if(t.ruleId!=null&&!rules.has(t.ruleId))fail();if(t.timestamp!=null&&(!str(t.timestamp,40)||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(t.timestamp)||!Number.isFinite(Date.parse(t.timestamp))||singaporeDate(t.timestamp)!==t.date))fail();}
   for(const r of data.rules){if(!Object.hasOwn(FREQUENCIES,r.frequency)||r.frequency==='none'||!validDate(r.startDate)||!Number.isInteger(r.nextIndex)||r.nextIndex<0||r.nextIndex>120000||typeof r.active!=='boolean'||(r.endDate&&(!validDate(r.endDate)||r.endDate<r.startDate)))fail();transaction(r.template,false);}
-  for(const b of data.budgets)if(!str(b.name,80)||!b.name.trim()||!Number.isSafeInteger(b.amount)||b.amount<=0||b.amount>100000000000||!validDate(b.startDate)||!Array.isArray(b.categoryIds)||b.categoryIds.some(id=>!cats.has(id)||data.categories.find(c=>c.id===id).type!=='expense'))fail();
+  for(const b of data.budgets)if(!str(b.name,80)||!b.name.trim()||!Number.isSafeInteger(b.amount)||b.amount<=0||b.amount>100000000000||!validDate(b.startDate)||(b.frequency!=null&&!Object.hasOwn(BUDGET_FREQUENCIES,b.frequency))||!Array.isArray(b.categoryIds)||b.categoryIds.some(id=>!cats.has(id)||data.categories.find(c=>c.id===id).type!=='expense'))fail();
   if(!data.settings||!['system','light','dark'].includes(data.settings.theme))fail();
   const cleanTemplate=t=>({type:t.type,amount:t.amount,categoryId:t.categoryId,labelIds:[...new Set(t.labelIds)],description:t.description,excluded:t.excluded});
-  return {version:1,categories:data.categories.map(c=>({id:c.id,name:c.name,icon:c.icon,color:c.color,type:c.type,archived:c.archived})),labels:data.labels.map(l=>({id:l.id,name:l.name})),transactions:data.transactions.map(t=>({id:t.id,...cleanTemplate(t),date:t.date,...(t.ruleId?{ruleId:t.ruleId}:{}),...(t.timestamp?{timestamp:t.timestamp}:{})})),budgets:data.budgets.map(b=>({id:b.id,name:b.name,amount:b.amount,startDate:b.startDate,categoryIds:[...new Set(b.categoryIds)]})),rules:data.rules.map(r=>({id:r.id,template:cleanTemplate(r.template),frequency:r.frequency,startDate:r.startDate,nextIndex:r.nextIndex,active:r.active,endDate:r.endDate||null})),settings:{theme:data.settings.theme}};
+  return {version:1,categories:data.categories.map(c=>({id:c.id,name:c.name,icon:c.icon,color:c.color,type:c.type,archived:c.archived})),labels:data.labels.map(l=>({id:l.id,name:l.name})),transactions:data.transactions.map(t=>({id:t.id,...cleanTemplate(t),date:t.date,...(t.ruleId?{ruleId:t.ruleId}:{}),...(t.timestamp?{timestamp:t.timestamp}:{})})),budgets:data.budgets.map(b=>({id:b.id,name:b.name,amount:b.amount,startDate:b.startDate,frequency:b.frequency||'monthly',categoryIds:[...new Set(b.categoryIds)]})),rules:data.rules.map(r=>({id:r.id,template:cleanTemplate(r.template),frequency:r.frequency,startDate:r.startDate,nextIndex:r.nextIndex,active:r.active,endDate:r.endDate||null})),settings:{theme:data.settings.theme}};
 }
 export function loadState(){const raw=localStorage.getItem(STORAGE_KEY);return raw?validateState(JSON.parse(raw)):initialState();}
 export function saveState(state){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}

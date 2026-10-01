@@ -6,12 +6,14 @@ A phone-first expense tracker built with HTML, CSS and vanilla JavaScript. No fr
 
 - SGD income and expenses, descriptions, categories, multiple labels and date selection.
 - Edit/delete transactions and calculate an amount with the built-in keypad.
-- Home cash flow with six months of paired income/expense bars.
+- Home month/year toggle, matching transaction history and six months/years of paired income/expense bars.
 - Overview month/year toggle, scrolling period selector, expense doughnut, cash-flow bars and income line graph.
 - Card details, ranked category totals and transaction counts, category transaction lists and back navigation.
-- Horizontal swipes, trackpad gestures and arrow keys change the selected Overview period.
+- Horizontal swipes, trackpad gestures and arrow keys change periods on Home, Overview and Budgets.
 - Search and filter transactions by type, category, label and date range.
-- Monthly overall and category budgets, remaining allowance and overspending indicators.
+- Daily, weekly, bi-weekly, monthly and yearly overall/category budgets, remaining allowance and overspending indicators.
+- Budget detail pages with selectable periods, spending bars, a budget-limit line, expense category breakdowns and related transactions.
+- Cash Flow details show ranked inflow/outflow categories before drilling down to their transactions.
 - Recurring entries: daily, weekdays, weekly, fortnightly, four-weekly, monthly, every 2/3/6 months and yearly.
 - CSV exports, complete JSON backup/restore, light/dark/system appearance.
 - Home-screen installation and offline use after the first successful visit.
@@ -43,7 +45,7 @@ Records are stored in `localStorage` under `everyday-sgd-v1`. No financial recor
 
 CSV exports use `Date,Wallet,Type,Category name,Amount,Currency,Note,Labels`, matching the supplied source-app export without Author. Wallet is blank, expenses are negative, income is positive, and amounts use eight decimal places. Original imported timestamps are preserved; entries with only a date export Singapore midnight as a UTC timestamp. CSV exports are for spreadsheets; JSON backups include transactions, categories, labels, budgets, recurring rules and settings. Restoring a backup replaces current records. The app validates imports and preserves unreadable saved data rather than overwriting it.
 
-Amounts use integer cents. Budgets use calendar months; their first period begins on the selected start date. Excluded transactions stay in history/exports but do not contribute to cash flow, charts or budgets. Future transactions are shown as scheduled until their dates arrive. The home history defaults to the selected month; setting a custom date range overrides that month for history and its CSV export.
+Amounts use integer cents. Daily, weekly and bi-weekly budgets repeat from the selected start date. Monthly and yearly budgets follow calendar months and calendar years, with the first period beginning on the chosen start date. Limits apply per period without prorating the first period. Existing budgets without a frequency default to monthly. Budget screens navigate by month; cards show the active period for the current month or the latest period intersecting a past month. Detail charts show complete periods intersecting the month, including cross-month dates, and allow selecting a different period. Excluded transactions stay in history/exports but do not contribute to cash flow, charts or budgets. Future transactions are shown as scheduled until their dates arrive. Home totals, history and charts follow the selected month or year; setting a custom date range overrides that selection for history and its CSV export.
 
 Recurring transactions are processed when the app opens or resumes, including missed due dates. A monthly rule anchored on the 31st uses the last day in shorter months, then returns to the 31st. Weekday rules skip weekends (not public holidays). Editing an occurrence affects only that transaction; edit the rule under Settings to change future entries. Pausing prevents generation; resuming catches up missed occurrences. Deleting a generated occurrence does not regenerate it. Removing a rule keeps its recorded transactions.
 
