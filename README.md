@@ -15,7 +15,7 @@ A phone-first expense tracker built with HTML, CSS and vanilla JavaScript. No fr
 - Budget detail pages with selectable periods, spending bars, a budget-limit line, expense category breakdowns and related transactions.
 - Cash Flow details show ranked inflow/outflow categories before drilling down to their transactions.
 - Recurring entries: daily, weekdays, weekly, fortnightly, four-weekly, monthly, every 2/3/6 months and yearly.
-- CSV exports, complete JSON backup/restore, light/dark/system appearance.
+- CSV exports, complete JSON backup/restore, System, Light, Dark, Colourful, Cheerful and Pastel appearance options.
 - Home-screen installation and offline use after the first successful visit.
 
 ## Host on GitHub Pages
@@ -56,3 +56,5 @@ Edit the files directly and commit to `main`. GitHub Pages will republish. Incre
 ## Verification
 
 The implementation was checked with automated model tests and browser flows for transaction entry/edit/delete, calculator, filters, budgets, recurring dates, labels/categories, backups, CSV downloads, persistence, phone layouts and offline loading.
+
+Appearance is saved on this device and included in JSON backups. Existing System/Light/Dark preferences are preserved. Light retains the white-and-blue palette; System follows the device’s light/dark preference.
