@@ -6,7 +6,10 @@ A phone-first expense tracker built with HTML, CSS and vanilla JavaScript. No fr
 
 - SGD income and expenses, descriptions, categories, multiple labels and date selection.
 - Edit/delete transactions and calculate an amount with the built-in keypad.
-- Monthly cash flow, six-month charts, category breakdown and period comparison.
+- Home cash flow with six months of paired income/expense bars.
+- Overview month/year toggle, scrolling period selector, expense doughnut, cash-flow bars and income line graph.
+- Card details, ranked category totals and transaction counts, category transaction lists and back navigation.
+- Horizontal swipes, trackpad gestures and arrow keys change the selected Overview period.
 - Search and filter transactions by type, category, label and date range.
 - Monthly overall and category budgets, remaining allowance and overspending indicators.
 - Recurring entries: daily, weekdays, weekly, fortnightly, four-weekly, monthly, every 2/3/6 months and yearly.
