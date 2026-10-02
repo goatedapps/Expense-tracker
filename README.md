@@ -58,3 +58,5 @@ Edit the files directly and commit to `main`. GitHub Pages will republish. Incre
 The implementation was checked with automated model tests and browser flows for transaction entry/edit/delete, calculator, filters, budgets, recurring dates, labels/categories, backups, CSV downloads, persistence, phone layouts and offline loading.
 
 Appearance is saved on this device and included in JSON backups. Existing System/Light/Dark preferences are preserved. Light retains the white-and-blue palette; System follows the device’s light/dark preference.
+
+Siri/Shortcuts voice entry can prefill a transaction for confirmation. See [the iPhone setup guide](SHORTCUTS.md). Settings includes a paste-link fallback for Home Screen apps when iOS opens a Shortcut link in Safari.
