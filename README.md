@@ -60,3 +60,5 @@ The implementation was checked with automated model tests and browser flows for 
 Appearance is saved on this device and included in JSON backups. Existing System/Light/Dark preferences are preserved. Light retains the white-and-blue palette; System follows the device’s light/dark preference.
 
 Siri/Shortcuts voice entry can prefill a transaction for confirmation. See [the iPhone setup guide](SHORTCUTS.md). Settings includes a paste-link fallback for Home Screen apps when iOS opens a Shortcut link in Safari.
+
+In Settings, **Open ‘Add transaction’ by default** opens a new transaction on launch and when returning to the app, without replacing an entry already being edited. It is off by default and included in JSON backups. Voice links take priority over a blank entry on launch. Closing or saving an entry returns to the app normally; navigating between tabs does not reopen it.
