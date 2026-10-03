@@ -62,3 +62,5 @@ Appearance is saved on this device and included in JSON backups. Existing System
 Siri/Shortcuts voice entry can prefill a transaction for confirmation. See [the iPhone setup guide](SHORTCUTS.md). Settings includes a paste-link fallback for Home Screen apps when iOS opens a Shortcut link in Safari.
 
 In Settings, **Open ‘Add transaction’ by default** opens a new transaction on launch and when returning to the app, without replacing an entry already being edited. It is off by default and included in JSON backups. Voice links take priority over a blank entry on launch. Closing or saving an entry returns to the app normally; navigating between tabs does not reopen it.
+
+An optional Capacitor Android APK wraps the same app without replacing the GitHub Pages version. See [Android installation, transfer and build instructions](ANDROID.md). Browser data and Android data are separate; transfer records with a JSON backup. `npm run android:build` generates the release APK for signing.

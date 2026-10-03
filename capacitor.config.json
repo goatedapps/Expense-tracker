@@ -1,0 +1,13 @@
+{
+  "appId": "io.goatedapps.everyday",
+  "appName": "Everyday",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "adjustMarginsForEdgeToEdge": "auto"
+  },
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "https"
+  }
+}
