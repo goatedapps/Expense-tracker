@@ -66,18 +66,93 @@ export function parseDictation(text,categories){
 }
 
 export function speechAvailable(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
-export function createDictation({onState,onTranscript,onError,isComplete=()=>false}){
-  let session=null;
-  function cancel(){const old=session;session=null;if(old){clearTimeout(old.timer);try{old.recognition.abort();}catch{}}onState(false);}
-  function start(){
-    cancel();const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!Recognition){onError('Dictation is unavailable in this browser. Please use manual entry.');return;}
-    const recognition=new Recognition(),current={recognition,parts:[],confidence:[],timer:null,failed:false};session=current;
-    recognition.lang='en-SG';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
-    recognition.onresult=e=>{if(session!==current)return;for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){current.parts[i]=e.results[i][0].transcript;current.confidence[i]=e.results[i][0].confidence;}const text=current.parts.filter(Boolean).join(' ').trim();if(text&&isComplete(text)){session=null;clearTimeout(current.timer);try{recognition.abort();}catch{}onState(false);onTranscript(text,current.confidence.some(c=>c>0&&c<0.65));}};
-    recognition.onerror=e=>{if(session!==current)return;current.failed=true;const messages={'not-allowed':'Tap the microphone to start dictation. Allow microphone and speech access if asked.','service-not-allowed':'Speech recognition is disabled in this browser.','audio-capture':'Microphone unavailable. Check microphone access.','network':'Speech recognition needs a working connection. Please try again.','no-speech':'No speech heard. Tap the microphone and try again.','language-not-supported':'English (Singapore) is unavailable in this browser.'};onError(messages[e.error]||'Dictation could not be completed. Please try again.');cancel();};
-    recognition.onend=()=>{if(session!==current)return;session=null;clearTimeout(current.timer);onState(false);if(current.failed)return;const text=current.parts.filter(Boolean).join(' ').trim();if(!text){onError('No complete speech heard. Tap the microphone and try again.');return;}onTranscript(text,current.confidence.some(c=>c>0&&c<0.65));};
-    try{onState(true);recognition.start();current.timer=setTimeout(()=>{if(session===current){onError('Dictation timed out. Please try again.');cancel();}},20000);}catch{cancel();onError('Tap the microphone to start dictation. Check browser permissions if it still cannot start.');}
+export function createDictation({onState,onTranscript,onError,onStatus=()=>{},isComplete=()=>false}){
+  let session=null,draining=null,releaseTimer=null;
+  const clearTimers=current=>{clearTimeout(current?.timer);clearTimeout(current?.readyTimer);};
+  const finalText=current=>current.parts.filter(Boolean).join(' ').trim();
+  function released(current){
+    if(draining!==current)return;
+    clearTimeout(releaseTimer);releaseTimer=null;draining=null;
+    if(session&&!session.recognition)begin(session);
   }
-  return {start,cancel,isListening:()=>!!session,stop:()=>{if(session)try{session.recognition.stop();}catch{cancel();}}};
+  function cancel(){
+    const old=session;session=null;clearTimers(old);
+    if(old?.recognition){
+      // Safari can still own the microphone until the aborted session ends.
+      draining=old;
+      releaseTimer=setTimeout(()=>released(old),800);
+      try{old.recognition.abort();}catch{released(old);}
+    }
+    onState(false);
+  }
+  function fail(current,message){
+    if(session!==current)return;
+    const text=finalText(current)||current.interim;
+    cancel();
+    // An unfinished browser result can fill a draft, but must never auto-save.
+    if(text)onTranscript(text,true);else onError(message);
+  }
+  function ready(current){
+    if(session!==current||current.ready||current.stopping)return;
+    current.ready=true;clearTimeout(current.readyTimer);
+    onStatus('Listening… say “Food fourteen Expense”.');
+  }
+  function begin(current){
+    if(session!==current)return;
+    try{
+      const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!Recognition){fail(current,'Dictation is unavailable in this browser. Please use manual entry.');return;}
+      const recognition=new Recognition();current.recognition=recognition;
+      recognition.lang='en-SG';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
+      recognition.onstart=()=>ready(current);
+      recognition.onaudiostart=()=>ready(current);
+      recognition.onspeechstart=()=>{if(session!==current||current.stopping)return;ready(current);onStatus('Voice detected… finish your transaction.');};
+      recognition.onresult=e=>{
+        if(session!==current)return;ready(current);
+        const interim=[];
+        for(let i=0;i<e.results.length;i++){
+          const result=e.results[i];if(!result[0])continue;
+          if(result.isFinal){current.parts[i]=result[0].transcript;current.confidence[i]=result[0].confidence;}
+          interim.push(result[0].transcript);
+        }
+        current.interim=interim.join(' ').trim();
+        const text=finalText(current);
+        if(text&&isComplete(text)){
+          const uncertain=current.confidence.some(c=>c>0&&c<0.65);
+          cancel();onTranscript(text,uncertain);
+        }
+      };
+      recognition.onerror=e=>{
+        const messages={'not-allowed':'Tap the microphone to start dictation. Allow microphone and speech access if asked.','service-not-allowed':'Speech recognition is disabled in this browser.','audio-capture':'Microphone unavailable. Check microphone access.','network':'Speech recognition needs a working connection. Please try again.','no-speech':'No speech heard. Wait for “Listening”, then speak. Tap the microphone to retry.','language-not-supported':'English (Singapore) is unavailable in this browser.','aborted':'Dictation was interrupted. Tap the microphone to retry.'};
+        fail(current,messages[e.error]||'Dictation could not be completed. Tap the microphone to retry.');
+      };
+      recognition.onend=()=>{
+        if(draining===current){released(current);return;}
+        if(session!==current)return;
+        session=null;clearTimers(current);onState(false);
+        const text=finalText(current);
+        if(text)onTranscript(text,current.confidence.some(c=>c>0&&c<0.65));
+        else if(current.interim)onTranscript(current.interim,true);
+        else onError('No speech recognised. Wait for “Listening”, then speak. Tap the microphone to retry.');
+      };
+      current.readyTimer=setTimeout(()=>fail(current,'Microphone did not start. Tap the microphone to retry.'),5000);
+      current.timer=setTimeout(()=>fail(current,'No completed speech received. Tap the microphone to retry.'),20000);
+      recognition.start();
+    }catch{fail(current,'Tap the microphone to start dictation. Check browser permissions if it still cannot start.');}
+  }
+  function start(){
+    cancel();
+    const current={recognition:null,parts:[],confidence:[],interim:'',ready:false,stopping:false,timer:null,readyTimer:null};
+    session=current;onState(true);
+    if(draining)onStatus('Restarting microphone… wait before speaking.');
+    else begin(current);
+  }
+  function stop(){
+    const current=session;if(!current)return;
+    if(!current.recognition||!current.ready){cancel();return;}
+    current.stopping=true;clearTimers(current);onStatus('Finishing dictation…');
+    current.timer=setTimeout(()=>fail(current,'Speech recognition did not finish. Tap the microphone to retry.'),6000);
+    try{current.recognition.stop();}catch{fail(current,'Dictation stopped. Tap the microphone to retry.');}
+  }
+  return {start,cancel,isListening:()=>!!session,stop};
 }
