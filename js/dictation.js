@@ -48,20 +48,46 @@ export function parseDictation(text,categories){
   const fail=message=>({valid:false,draft,message});
   const raw=String(text).trim().replace(/[.!?]+$/,'').trim();
   if(raw.length>400)return fail('Say one transaction at a time.');
-  const command=raw.match(/^(?:add\s+)?(.+?)\s+(expenses?|income)$/i);
-  if(!command)return fail('Use “[category] [amount] Expense” or “… Income”.');
-  draft.type=command[2].toLowerCase()==='income'?'income':'expense';
-  // Find an exact category prefix, leaving the amount untouched for parsing.
-  const body=command[1];const matches=[];
-  for(let i=1;i<body.length;i++)if(/\s/.test(body[i])){
-    const name=categoryName(body.slice(0,i)),amount=body.slice(i).trim();
-    for(const c of categories)if(!c.archived&&c.type===draft.type&&[c.name,c.id].some(x=>categoryName(x)===name))matches.push({c,amount,length:i});
+  if(!raw)return fail('Say a category and amount, such as “Groceries fifteen dollars”.');
+  const income=/\bincome\b/i.test(raw),expense=/\bexpenses?\b/i.test(raw);
+  if(income&&expense)return fail('Say either income or expense for one transaction.');
+  draft.type=income?'income':'expense';
+  const active=categories.filter(c=>!c.archived&&c.type===draft.type);
+  const body=raw.replace(/^add\s+/i,'').trim();
+  // Preserve the original category text (e.g. “Other income”), while also
+  // allowing an explicit type at either end of the spoken command.
+  const bodies=new Set([body]);
+  for(const value of bodies){
+    bodies.add(value.replace(/^(?:income|expenses?)[\s,]+/i,'').trim());
+    bodies.add(value.replace(/[\s,]+(?:income|expenses?)$/i,'').trim());
   }
-  matches.sort((a,b)=>b.length-a.length);
-  if(!matches.length)return fail('Category not recognised. Choose an active category below, then enter the amount.');
-  if(matches.filter(m=>m.length===matches[0].length).length!==1)return fail('Category is ambiguous. Choose it below.');
-  draft.categoryId=matches[0].c.id;
-  try{draft.amount=spokenAmount(matches[0].amount);}catch{return fail('Amount unclear. Check the amount below before saving.');}
+  const matches=[];
+  function matchCategory(label,amount){
+    const name=categoryName(label);if(!name)return;
+    for(const c of active){
+      const exact=categoryName(c.name)===name,idMatch=categoryName(c.id)===name;
+      const first=categoryName(c.name).split(' ')[0];
+      if(!exact&&!idMatch&&name!==first)continue;
+      const cleaned=amount.replace(/\b(?:income|expenses?)\b/gi,' ').trim().replace(/^[,;:]+|[,;:]+$/g,'').trim();
+      let cents=null;try{cents=spokenAmount(cleaned);}catch{}
+      matches.push({c,rank:exact?2:1,length:name.length,amount:cents});
+    }
+  }
+  for(const value of bodies){
+    matchCategory(value,'');
+    for(let i=1;i<value.length;i++)if(/\s/.test(value[i])){
+      const left=value.slice(0,i).trim(),right=value.slice(i).trim();
+      matchCategory(left,right);matchCategory(right,left);
+    }
+  }
+  matches.sort((a,b)=>b.rank-a.rank||b.length-a.length);
+  if(!matches.length)return fail(`Category not recognised for ${draft.type}. Choose an active category below.`);
+  const best=matches.filter(m=>m.rank===matches[0].rank&&m.length===matches[0].length);
+  if(new Set(best.map(m=>m.c.id)).size!==1)return fail('That category name matches more than one category. Say its full name or choose it below.');
+  draft.categoryId=best[0].c.id;
+  const amounts=[...new Set(best.filter(m=>m.amount!==null).map(m=>m.amount))];
+  if(amounts.length!==1)return fail('Amount unclear. Check the amount below before saving.');
+  draft.amount=amounts[0];
   return {valid:true,draft,message:''};
 }
 
@@ -95,7 +121,7 @@ export function createDictation({onState,onTranscript,onError,onStatus=()=>{},is
   function ready(current){
     if(session!==current||current.ready||current.stopping)return;
     current.ready=true;clearTimeout(current.readyTimer);
-    onStatus('Listening… say “Food fourteen Expense”.');
+    onStatus('Listening… say “Groceries fifteen dollars”.');
   }
   function begin(current){
     if(session!==current)return;
