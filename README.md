@@ -1,6 +1,6 @@
 # Everyday · SGD Expense Tracker
 
-A phone-first expense tracker built with HTML, CSS and vanilla JavaScript. No framework, build step, backend or login. Optional local dictation uses the bundled Cactus Whistle WASM engine and a downloaded speech model.
+A phone-first expense tracker built with HTML, CSS and vanilla JavaScript. No framework, build step, backend or login. Dictation uses the browser’s built-in speech recognition.
 
 ## Features
 
@@ -59,9 +59,9 @@ The implementation was checked with automated model tests and browser flows for 
 
 Appearance is saved on this device and included in JSON backups. Existing System/Light/Dark preferences are preserved. Light retains the white-and-blue palette; System follows the device’s light/dark preference.
 
-Siri/Shortcuts voice entry can prefill a transaction for confirmation. See [the iPhone setup guide](SHORTCUTS.md). Settings includes a paste-link fallback for Home Screen apps when iOS opens a Shortcut link in Safari.
+Siri/Shortcuts voice entry can prefill a transaction for confirmation. See [the iPhone setup guide](SHORTCUTS.md). The app’s built-in microphone offers direct transaction dictation; Settings no longer includes a paste-link screen.
 
-In Settings, **Open ‘Add transaction’ by default** opens a new transaction on launch and when returning to the app, without replacing an entry already being edited. It is off by default and included in JSON backups. Voice links take priority over a blank entry on launch. Closing or saving an entry returns to the app normally; navigating between tabs does not reopen it.
+In Settings, **Open ‘Add transaction’ by default** has three radio options: **None** opens the normal app view, **Manual** opens a new transaction, and **Dictation** opens a new transaction and immediately attempts browser speech recognition. The preference applies on launch and when returning to the app, without replacing an entry already being edited. If the browser requires a user gesture or permission before listening, the entry remains open with a message to tap the microphone. None is the default. Existing enabled preferences migrate to Manual; existing disabled preferences migrate to None. The choice is included in JSON backups. Voice links take priority over a blank entry on launch. Closing or saving an entry returns to the app normally; navigating between tabs does not reopen it.
 
 An optional Capacitor Android APK wraps the same app without replacing the GitHub Pages version. See [Android installation, transfer and build instructions](ANDROID.md). Browser data and Android data are separate; transfer records with a JSON backup. `npm run android:build` generates the release APK for signing.
 
@@ -69,14 +69,10 @@ An optional Capacitor Android APK wraps the same app without replacing the GitHu
 
 On Add transaction, tap the microphone and say **“Food $14 Expense”** or **“Groceries twelve dollars forty Expense”**. For income, say **“Salary five thousand Income”**. The word “Add” is optional. Use the name of an active category, followed by the amount and Expense/Income. The currently selected date is used (today by default); existing notes and labels are kept.
 
-Amounts can be numbers or words: **“eleven dollars and twenty”**, **“eleven dollars and twenty cents”** and **“eleven dollars twenty”** all mean $11.20. **“60 cents”**, **“sixty cents”**, **“$0.60”** and **“.60”** mean $0.60. These formats apply to both Browser and Whistle dictation.
+Amounts can be numbers or words: **“eleven dollars and twenty”**, **“eleven dollars and twenty cents”** and **“eleven dollars twenty”** all mean $11.20. **“60 cents”**, **“sixty cents”**, **“$0.60”** and **“.60”** mean $0.60. These formats apply to browser dictation.
 
 A valid single command automatically saves the transaction and shows its amount/category/type with **Undo** for 2 seconds. Low-confidence speech, unclear amounts, unknown/archived categories or multiple commands stay unsaved for correction. Selected recurrence/exclusion options also require the normal Save tap. Only final recognition results are processed, once per listening session. Closing the editor, editing a field or leaving the app cancels listening; late results cannot save a transaction. Dictation is available for new entries; existing entries retain their usual editing flow.
 
-Choose **Browser** or **Whistle · experimental** under **Settings → Dictation**, or use the selector beside the microphone on Add transaction. The choice is saved on this device and included in JSON backups. Browser remains the default. No API key or app backend is needed. The Shortcut paste-link option remains in Settings.
+Dictation uses SpeechRecognition/webkitSpeechRecognition with English (Singapore). No engine selector, model download, API key or app backend is needed. Your browser may send the spoken phrase to its speech provider and may require Internet access. Complete, valid final commands are processed immediately without waiting for the recognition session to end.
 
-**Browser** uses SpeechRecognition/webkitSpeechRecognition with English (Singapore). Your browser may send the spoken phrase to its speech provider and may require Internet access. Complete, valid final commands are processed immediately without waiting for the recognition session to end.
-
-**Whistle** downloads a pinned, verified 16.9 MB English model from Hugging Face the first time you select it. Wait for “Whistle ready”, then tap the microphone, speak one transaction and pause briefly. Recording stops after approximately 0.7 seconds of silence following speech, or after 12 seconds; tapping the microphone again also finishes recording. Transcription runs locally in a Web Worker using WebAssembly; recorded audio is never uploaded. The model is cached separately from app updates for later use, including offline use when browser caching is available. Clearing site data also removes it. The engine and model sources are documented in [vendor/whistle/README.md](vendor/whistle/README.md).
-
-Allow microphone access when asked. Safari/iPhone Home Screen support and speed depend on the device and iOS version; this option is experimental and needs a trial on your phone. The integration was checked with the actual WASM engine, recorded speech, model caching and browser microphone capture. Simulated transcripts cover transaction saving, correction, cancellation and Undo. If an engine is unavailable, select the other engine or continue with manual entry.
+Allow microphone and speech access when asked. Browser support depends on the device and iOS version. Manual entry remains available when recognition cannot start. The latest default-entry and settings changes received static code review and JavaScript syntax checks only; live dictation testing is left to the user.

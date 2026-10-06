@@ -42,7 +42,7 @@ https://goatedapps.github.io/Expense-tracker/#add?type=expense&amount=12.50&cate
 
 iOS may open **Safari** rather than the installed app. Safari and your Home Screen app can have separate local storage. Before saving, check that you are in the app containing your usual records.
 
-If it opens Safari, **close the draft without saving**, open Everyday from its Home Screen icon, and go to **Settings → Voice entry**. Paste the link (the Shortcut already copied it), tap **Review transaction**, check the details and tap **Add Transaction**. You do not need to move or restore your existing data.
+If it opens Safari, **close the draft without saving** and open Everyday from its Home Screen icon. Use the microphone on Add transaction to dictate directly into the app containing your records. The previous Settings → Voice entry paste-link screen has been removed. Under Settings, choosing **Open ‘Add transaction’ by default → Dictation** opens the entry and attempts listening when you open the app.
 
 If the Shortcut reliably opens the right app, you can save directly from the prefilled screen. Do not assume it will route to the installed app on every iOS version.
 
