@@ -54,7 +54,7 @@ export function parseDictation(text,categories){
 }
 
 export function speechAvailable(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
-export function createDictation({onState,onTranscript,onError}){
+export function createDictation({onState,onTranscript,onError,isComplete=()=>false}){
   let session=null;
   function cancel(){const old=session;session=null;if(old){clearTimeout(old.timer);try{old.recognition.abort();}catch{}}onState(false);}
   function start(){
@@ -62,7 +62,7 @@ export function createDictation({onState,onTranscript,onError}){
     if(!Recognition){onError('Dictation is unavailable in this browser. Please use manual entry.');return;}
     const recognition=new Recognition(),current={recognition,parts:[],confidence:[],timer:null,failed:false};session=current;
     recognition.lang='en-SG';recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
-    recognition.onresult=e=>{if(session!==current)return;for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){current.parts[i]=e.results[i][0].transcript;current.confidence[i]=e.results[i][0].confidence;}};
+    recognition.onresult=e=>{if(session!==current)return;for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){current.parts[i]=e.results[i][0].transcript;current.confidence[i]=e.results[i][0].confidence;}const text=current.parts.filter(Boolean).join(' ').trim();if(text&&isComplete(text)){session=null;clearTimeout(current.timer);try{recognition.abort();}catch{}onState(false);onTranscript(text,current.confidence.some(c=>c>0&&c<0.65));}};
     recognition.onerror=e=>{if(session!==current)return;current.failed=true;const messages={'not-allowed':'Allow microphone and speech recognition access, then try again.','service-not-allowed':'Speech recognition is disabled in this browser.','audio-capture':'Microphone unavailable. Check microphone access.','network':'Speech recognition needs a working connection. Please try again.','no-speech':'No speech heard. Tap the microphone and try again.','language-not-supported':'English (Singapore) is unavailable in this browser.'};onError(messages[e.error]||'Dictation could not be completed. Please try again.');cancel();};
     recognition.onend=()=>{if(session!==current)return;session=null;clearTimeout(current.timer);onState(false);if(current.failed)return;const text=current.parts.filter(Boolean).join(' ').trim();if(!text){onError('No complete speech heard. Tap the microphone and try again.');return;}onTranscript(text,current.confidence.some(c=>c>0&&c<0.65));};
     try{onState(true);recognition.start();current.timer=setTimeout(()=>{if(session===current){onError('Dictation timed out. Please try again.');cancel();}},20000);}catch{cancel();onError('Could not start the microphone. Check browser permissions and try again.');}

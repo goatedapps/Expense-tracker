@@ -1,6 +1,6 @@
 # Everyday · SGD Expense Tracker
 
-A phone-first expense tracker built with HTML, CSS and vanilla JavaScript. No framework, build step, backend, login or external dependencies.
+A phone-first expense tracker built with HTML, CSS and vanilla JavaScript. No framework, build step, backend or login. Optional local dictation uses the bundled Cactus Whistle WASM engine and a downloaded speech model.
 
 ## Features
 
@@ -69,6 +69,12 @@ An optional Capacitor Android APK wraps the same app without replacing the GitHu
 
 On Add transaction, tap the microphone and say **“Add Groceries twelve dollars forty Expense”** (or **“Add Groceries $12.40 Expense”**). For income, say **“Add Salary five thousand Income”**. Use the exact name of an active category, followed by the amount and Expense/Income. The currently selected date is used (today by default); existing notes and labels are kept.
 
-A valid single command automatically saves the transaction and shows its amount/category/type with **Undo** for 20 seconds. Low-confidence speech, unclear amounts, unknown/archived categories or multiple commands stay unsaved for correction. Selected recurrence/exclusion options also require the normal Save tap. Only final recognition results are processed, once per listening session. Closing the editor, editing a field or leaving the app cancels listening; late results cannot save a transaction. Dictation is available for new entries; existing entries retain their usual editing flow.
+A valid single command automatically saves the transaction and shows its amount/category/type with **Undo** for 2 seconds. Low-confidence speech, unclear amounts, unknown/archived categories or multiple commands stay unsaved for correction. Selected recurrence/exclusion options also require the normal Save tap. Only final recognition results are processed, once per listening session. Closing the editor, editing a field or leaving the app cancels listening; late results cannot save a transaction. Dictation is available for new entries; existing entries retain their usual editing flow.
 
-This first version uses the browser's SpeechRecognition/webkitSpeechRecognition API with English (Singapore), not Whistle. No API key or app backend is needed. Your browser may send the spoken phrase to its speech provider and may require Internet access. Safari/iPhone Home Screen availability depends on iOS/browser settings; allow microphone/speech access when asked. If the browser does not expose speech recognition, the microphone is disabled and manual entry remains available. Parser/save/error/Undo handling was tested with simulated recognition results; actual microphone recognition needs testing on your phone. The Shortcut paste-link option remains in Settings.
+Choose **Browser** or **Whistle · experimental** under **Settings → Dictation**, or use the selector beside the microphone on Add transaction. The choice is saved on this device and included in JSON backups. Browser remains the default. No API key or app backend is needed. The Shortcut paste-link option remains in Settings.
+
+**Browser** uses SpeechRecognition/webkitSpeechRecognition with English (Singapore). Your browser may send the spoken phrase to its speech provider and may require Internet access. Complete, valid final commands are processed immediately without waiting for the recognition session to end.
+
+**Whistle** downloads a pinned, verified 16.9 MB English model from Hugging Face the first time you select it. Wait for “Whistle ready”, then tap the microphone, speak one transaction and pause briefly. Recording stops after approximately 0.7 seconds of silence following speech, or after 12 seconds; tapping the microphone again also finishes recording. Transcription runs locally in a Web Worker using WebAssembly; recorded audio is never uploaded. The model is cached separately from app updates for later use, including offline use when browser caching is available. Clearing site data also removes it. The engine and model sources are documented in [vendor/whistle/README.md](vendor/whistle/README.md).
+
+Allow microphone access when asked. Safari/iPhone Home Screen support and speed depend on the device and iOS version; this option is experimental and needs a trial on your phone. The integration was checked with the actual WASM engine, recorded speech, model caching and browser microphone capture. Simulated transcripts cover transaction saving, correction, cancellation and Undo. If an engine is unavailable, select the other engine or continue with manual entry.
