@@ -67,7 +67,9 @@ An optional Capacitor Android APK wraps the same app without replacing the GitHu
 
 ## Dictate a transaction in the web app
 
-On Add transaction, tap the microphone and say **“Add Groceries twelve dollars forty Expense”** (or **“Add Groceries $12.40 Expense”**). For income, say **“Add Salary five thousand Income”**. Use the exact name of an active category, followed by the amount and Expense/Income. The currently selected date is used (today by default); existing notes and labels are kept.
+On Add transaction, tap the microphone and say **“Food $14 Expense”** or **“Groceries twelve dollars forty Expense”**. For income, say **“Salary five thousand Income”**. The word “Add” is optional. Use the name of an active category, followed by the amount and Expense/Income. The currently selected date is used (today by default); existing notes and labels are kept.
+
+Amounts can be numbers or words: **“eleven dollars and twenty”**, **“eleven dollars and twenty cents”** and **“eleven dollars twenty”** all mean $11.20. **“60 cents”**, **“sixty cents”**, **“$0.60”** and **“.60”** mean $0.60. These formats apply to both Browser and Whistle dictation.
 
 A valid single command automatically saves the transaction and shows its amount/category/type with **Undo** for 2 seconds. Low-confidence speech, unclear amounts, unknown/archived categories or multiple commands stay unsaved for correction. Selected recurrence/exclusion options also require the normal Save tap. Only final recognition results are processed, once per listening session. Closing the editor, editing a field or leaving the app cancels listening; late results cannot save a transaction. Dictation is available for new entries; existing entries retain their usual editing flow.
 

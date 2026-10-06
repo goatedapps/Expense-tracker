@@ -1,4 +1,4 @@
-const CACHE='everyday-v11';
+const CACHE='everyday-v12';
 const ROOT=new URL('./',self.location).href;
 const ASSETS=['./','./index.html','./styles.css','./js/app.js','./js/model.js','./js/voice.js','./js/platform.js','./js/dictation.js','./js/whistle.js','./js/whistle-worker.js','./js/whistle-audio-worklet.js','./vendor/whistle/needle.js','./vendor/whistle/needle.wasm','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(path=>new URL(path,ROOT).href)))));
