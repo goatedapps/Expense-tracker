@@ -53,6 +53,8 @@ Recurring transactions are processed when the app opens or resumes, including mi
 
 Edit the files directly and commit to `main`. GitHub Pages will republish. Increment the cache name in `sw.js` when changing cached assets. Installed clients receive the new service worker after the old app windows close and reopen.
 
+After installation, the app serves its saved HTML, JavaScript, styles and icons from the current release’s cache first, without waiting for a network request. Network access is needed only when an asset is missing or browser storage has been cleared. Browser update checks and installation of new releases run separately; the app does not force a page reload to install them. Close existing app windows and reopen to use a downloaded release. iOS can still discard an inactive app’s running process, so a cold launch may take longer than resuming it; browser storage eviction can also require a fresh download.
+
 ## Verification
 
 The implementation was checked with automated model tests and browser flows for transaction entry/edit/delete, calculator, filters, budgets, recurring dates, labels/categories, backups, CSV downloads, persistence, phone layouts and offline loading.
